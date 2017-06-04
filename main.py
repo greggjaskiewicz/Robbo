@@ -1,5 +1,4 @@
 import pygame
-import random
 import math
 
 ####constants####
@@ -24,7 +23,6 @@ MAX_NUMBER_LEVELS = 2
 #classes#
 
 class Obj: # will be the player and the barrel
-#
 
     def __init__(self, x, y, hp, screws):
         self.x = x
@@ -33,9 +31,20 @@ class Obj: # will be the player and the barrel
         self.screws = screws
 
     def move(self, dx, dy):
-        if not (self.x + dx, self.y + dy) in blocked:
+        if not (self.x + dx, self.y + dy) in WALLS_LIST:
             self.x += dx
             self.y += dy
+
+    def take(self, gathering_list, bin):
+        try:
+            for g in gathering_list:
+                if distance(Player.x, Player.y, g[0], g[1]) < 2:
+                    gathering_list.remove((g[0], g[1]))
+                    bin.append((g[0], g[1]))
+                    self.screws += 1
+        except ValueError:
+            pass
+
 
 
 #GAME#
@@ -43,7 +52,6 @@ class Obj: # will be the player and the barrel
 def game_loop():
     global game_QUIT
     global descend
-    global current_level_number
     game_QUIT = False
 
     while not game_QUIT:
@@ -69,8 +77,7 @@ def game_loop():
                     # TODO MAKE MULTIPLE LEVELS
                     pass
 
-        getcurrent_map()
-        draw_game()
+        game_logic()
 
 def initialize_game():
 
@@ -107,7 +114,7 @@ def initialize_game():
 #    print maps_list
 
 def check_if_descended():
-    if distance(Player.x, Player.y, STAIRS_DOWN[0][0], STAIRS_DOWN[0][1]) < 2:
+    if distance(Player.x, Player.y, st_u_x, st_u_y) < 2:
         return True
 
 def getcurrent_map():
@@ -117,11 +124,11 @@ def getcurrent_map():
     with open('level_%s.txt' % current_level_number, 'r') as l_map:
         for line in l_map:
             current_level.append(line)
-    return current_level#
+    return current_level
 
 def get_screw():
     # ex. [[120, 75], [105, 90], [120, 90], [60, 180], [180, 180], [60, 225], [180, 225]]
-    for s in SCREWS:
+    for s in SCREWS_LIST:
         print s[0], s[1]
         if distance(Player.x, Player.y, s[0], s[1]) < 2:
             return s[0], s[1]
@@ -144,21 +151,28 @@ Player = Obj(player_x, player_y, 100, 0)
 
 #DRAWING#
 
-def draw_map(): # TODO draws the map from a file < - IT IS RE APPENDING DATA, THIS FUNCTION SHOULD BE CALLED 'GET OBJS'
-    # THIS IS GETTING AND LOOPING FOREVER THE LISTS, THIS HAS TO BE DONE OUTSIDE THE LOOP!!!
-    global blocked
-    global AIR
-    global space_x
-    global space_y
-    global level_completed
-    global STAIRS_DOWN
-    global SCREWS
+def get_objs():
+    # The only aim for this function is to set position to every defined character on screen
 
-    level_completed = False # it will not show the stairs until all the screwes are gathered
-    blocked = []
-    STAIRS_DOWN = []
-    STAIRS_UP = [] # stairs up will be generated next to the place, where the staris down were, if the place will not be occupied.
-    SCREWS = []
+    # THIS IS GETTING AND LOOPING FOREVER THE LISTS, THIS HAS TO BE DONE OUTSIDE THE LOOP!!! < - Done
+    # commented blocks are my mistakes
+
+    global WALLS_LIST
+    global AIR
+    global space_x, space_y
+    global starting_x, starting_y
+    global wall_x, wall_y
+    global st_d_x, st_d_y
+    global st_u_x, st_u_y
+    global scr_x, scr_y
+    global SCREWS_LIST
+    global SPACE_LIST
+    global EMPTY_LIST
+
+    EMPTY_LIST = []
+    WALLS_LIST = []
+    SCREWS_LIST = []
+    SPACE_LIST = []
     level = current_level
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -170,43 +184,46 @@ def draw_map(): # TODO draws the map from a file < - IT IS RE APPENDING DATA, TH
 
             if char == char_WALL:
                 wall_x, wall_y = (char_x, char_y)
-                blocked.append((wall_x, wall_y))
-                WINDOW.blit(WALL, (wall_x, wall_y))
+                WALLS_LIST.append((wall_x, wall_y))
+                #WINDOW.blit(WALL, (wall_x, wall_y))
+                #print wall_x, wall_y
 
             elif char == char_PLAYER:
                 (starting_x, starting_y) = (char_x, char_y) # starting position
-                if distance(Player.x, Player.y, starting_x, starting_y) > 2:
-                    WINDOW.blit(SPACE, (starting_x, starting_y)) # if it's not on it's starting pos, draw '.'
+                #if distance(Player.x, Player.y, starting_x, starting_y) > 2:
+                #    WINDOW.blit(SPACE, (starting_x, starting_y)) # if it's not on it's starting pos, draw '.'
 
             elif char == char_SPACE:
                 (space_x, space_y) = (char_x, char_y)
-                if distance(Player.x, Player.y, space_x, space_y) > 2:
-                    WINDOW.blit(SPACE, (space_x, space_y))
+                SPACE_LIST.append((space_x, space_y))
+                #if distance(Player.x, Player.y, space_x, space_y) > 2:
+                #    WINDOW.blit(SPACE, (space_x, space_y))
+                #print space_x, space_x
 
             elif char == char_STAIR_DOWN:
-                if level_completed:
-                    (st_d_x, st_d_y) = (char_x, char_y)
-                    STAIRS_DOWN.append([st_d_x, st_d_y])
-                    if distance(Player.x, Player.y, st_d_x, st_d_y) > 2:
-                        WINDOW.blit(STAIR_DOWN, (st_d_x, st_d_y))
-                else:
-                    (space_x, space_y) = (char_x, char_y)
-                    if distance(Player.x, Player.y, space_x, space_y) > 2:
-                        WINDOW.blit(SPACE, (space_x, space_y))
+                (st_d_x, st_d_y) = (char_x, char_y)
+                #if distance(Player.x, Player.y, st_d_x, st_d_y) > 2:
+                #        WINDOW.blit(STAIR_DOWN, (st_d_x, st_d_y))
+                #else:
+                #    (space_x, space_y) = (char_x, char_y)
+                #    if distance(Player.x, Player.y, space_x, space_y) > 2:
+                #        WINDOW.blit(SPACE, (space_x, space_y))
 
             elif char == char_STAIR_UP:
                 (st_u_x, st_u_y) = (char_x, char_y)
-                if distance(Player.x, Player.y, st_u_x, st_u_y) > 2:
-                    WINDOW.blit(STAIR_UP, (st_u_x, st_u_y))
+                #if distance(Player.x, Player.y, st_u_x, st_u_y) > 2:
+                #    WINDOW.blit(STAIR_UP, (st_u_x, st_u_y))
+                # stairs up will be generated next to the place, where the staris down were, if the place will not be occupied.
+
 
             elif char == char_SCREW:
                 (scr_x, scr_y) = (char_x, char_y) # starting position
-                SCREWS.append((scr_x, scr_y))
-                if (scr_x, scr_y) in SCREWS and distance(Player.x, Player.y, scr_x, scr_y) > 2:
-                    WINDOW.blit(SCREW, (scr_x, scr_y))
+                SCREWS_LIST.append((scr_x, scr_y))
+                #if (scr_x, scr_y) in SCREWS_LIST and distance(Player.x, Player.y, scr_x, scr_y) > 2:
+                #    WINDOW.blit(SCREW, (scr_x, scr_y))
+                #print SCREWS_LIST
                 #if distance(Player.x, Player.y, scr_x, scr_y) > 2:
-    print SCREWS
-
+    #print SCREWS
 
 
                 #elif (scr_x, scr_y) not in SCREWS:
@@ -225,6 +242,41 @@ def draw_map(): # TODO draws the map from a file < - IT IS RE APPENDING DATA, TH
             #WINDOW.blit(EMPTY_SPACE, (Player.x, Player.y))
 
 
+def draw_map():
+    # After setting the (x, y) it's time to draw the characters at those positions
+
+    global level_completed
+    level_completed = True
+
+    for w in WALLS_LIST:
+        WINDOW.blit(WALL, (w[0], w[1]))
+
+    if distance(Player.x, Player.y, starting_x, starting_y) > 2:
+        WINDOW.blit(SPACE, (starting_x, starting_y))
+
+    for s in SCREWS_LIST:
+        if (s[0], s[1]) in SCREWS_LIST:
+            if distance(Player.x, Player.y, s[0], s[1]) > 2:
+                WINDOW.blit(SCREW, (s[0], s[1]))
+
+    for e in EMPTY_LIST:
+        if distance(Player.x, Player.y, e[0], e[1]) > 2:
+            WINDOW.blit(SPACE, (e[0], e[1]))
+
+    for sd in SPACE_LIST:
+        if distance(Player.x, Player.y, sd[0], sd[1]) > 2:
+            WINDOW.blit(SPACE, (sd[0], sd[1]))
+
+    if level_completed:
+        if distance(Player.x, Player.y, st_d_x, st_d_y) > 2:
+            WINDOW.blit(STAIR_DOWN, (st_d_x, st_d_y))
+        try:
+            if distance(Player.x, Player.y, st_u_x, st_u_y) > 2:
+                WINDOW.blit(STAIR_UP, (st_u_x, st_u_y))
+        except NameError: # did not found stairs up
+            pass
+
+
 def distance(ax, ay, bx, by):
     aa = ax - bx
     bb = ay - by
@@ -234,23 +286,24 @@ def distance(ax, ay, bx, by):
 def draw_character():
     WINDOW.blit(PLAYER, (Player.x, Player.y))
 
-def draw_game():
-
-    global WINDOW
+def game_logic():
+    # what is actually done in steps for the game to be
 
     # clear
     WINDOW.fill(BLACK)
 
-    #check the current map
+    # check the current map
 
     #getcurrent_map()
 
-    # draw the map
-
-    draw_map()
     # draw character#
-
     draw_character()
+
+    # check for gather
+    Player.take(SCREWS_LIST, EMPTY_LIST)
+
+    # draw the map
+    draw_map()
 
     # update screen
     pygame.display.flip()
@@ -260,5 +313,7 @@ def draw_game():
 
 if __name__ == '__main__':
     initialize_game()
-    #getall_maps()
+    getcurrent_map()
+    get_objs()
+    #draw_map()
     game_loop()

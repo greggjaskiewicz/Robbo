@@ -1,8 +1,11 @@
 Pierwsze cele:
-1.Wczytac plik level_1 i wyswietlic go. rozmiar: 25x25
+1.Wczytac plik level_1 i wyswietlic go. rozmiar: 25x25 !Done!
 2.Poruszac sie robbem i zaniechac ruchu, jesli wpadnie na sciane '#' !Done!
-3.Wczytywac planszy (do 9)
-
+3.Zbierać śrubki
+4.Popychac beczki
+5.Wyswietlac informacje na ekranie
+5.Wczytywać wiele plansz
+6.Menu glowne i "about"
 
 
 
