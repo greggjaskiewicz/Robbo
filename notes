@@ -2,3 +2,20 @@ Pierwsze cele:
 1.Wczytac plik level_1 i wyswietlic go. rozmiar: 25x25
 2.Poruszac sie robbem i zaniechac ruchu, jesli wpadnie na sciane '#' !Done!
 3.Wczytywac planszy (do 9)
+
+
+
+
+Wczytywanie planszy:
+
+1.Maksymalna liczba planszy, która wczytuje ilość map na jej podstawie.
+2.Gdy gracz schodzi na głębszy poziom, current_level zostaje dodany o 1, co zostaje
+zainterpretowane w słowniku z odpowiednim do tego kluczem:
+
+1(current_level): [mapa 1]
+2: [mapa 2]
+3: [mapa 3]
+
+current_level += 1:
+
+2(current_level): [mapa2]
