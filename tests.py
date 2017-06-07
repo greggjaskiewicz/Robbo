@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 MAX_NUMBER_LEVELS = 3
 
 def getall_maps():
